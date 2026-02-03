@@ -11,3 +11,5 @@ npm-debug.log*
 !.env.example
 
 node_modules
+
+temp

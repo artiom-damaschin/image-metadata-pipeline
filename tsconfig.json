@@ -3,9 +3,11 @@
     "target": "ES2024",
     "module": "nodenext",
     "moduleResolution": "nodenext",
+    "allowImportingTsExtensions": true,
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "types": ["node"],
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "noEmit": true
   }
 }

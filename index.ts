@@ -1,11 +1,30 @@
-type User = {
-  name: string;
-  age: number;
-};
+import path from "node:path";
 
-const john = {
-  name: "John",
-  age: 33,
-} satisfies User;
+import { extractMetadata } from "./lib/extract-metadata.ts";
+import { groupByCamera } from "./lib/group-by-camera.ts";
+import { scanDir } from "./lib/scan-dir.ts";
 
-console.log(john);
+async function main() {
+  const dir = process.argv[2];
+
+  if (!dir) {
+    console.error("Usage: node index.js <image-directory>");
+    process.exit(1);
+  }
+
+  const filePaths = await scanDir(path.resolve(dir));
+  const results = [];
+
+  for (const filePath of filePaths) {
+    const fileMetadata = await extractMetadata(filePath);
+
+    results.push(fileMetadata);
+  }
+  const grouped = groupByCamera(results);
+
+  console.log(grouped);
+}
+
+console.time("Execution Time");
+await main();
+console.timeEnd("Execution Time");
