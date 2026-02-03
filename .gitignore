@@ -1,0 +1,13 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+
+.npm
+
+# dotenv environment variable files
+.env
+.env.*
+!.env.example
+
+node_modules

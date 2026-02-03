@@ -1,0 +1,21 @@
+{
+  "name": "image-metadata-pipeline",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/artiom-damaschin/image-metadata-pipeline.git"
+  },
+  "author": "Artiom Damaschin",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^24.10.9",
+    "typescript": "^5.9.3"
+  }
+}
