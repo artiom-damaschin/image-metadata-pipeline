@@ -1,5 +1,6 @@
 import sharp from "sharp";
 import exifr from "exifr";
+import type { Metadata } from "./types.ts";
 
 interface ExifData {
   Make?: string;
@@ -7,7 +8,7 @@ interface ExifData {
   DateTimeOriginal?: string;
 }
 
-export async function extractMetadata(filePath: string) {
+export async function extractMetadata(filePath: string): Promise<Metadata> {
   const metadata = await sharp(filePath).metadata();
   let exifData: ExifData = {};
 

@@ -4,6 +4,10 @@
   "description": "",
   "main": "index.js",
   "type": "module",
+  "imports": {
+    "#utils": "./utils/index.ts",
+    "#utils/*": "./utils/*.ts"
+  },
   "scripts": {
     "dev": "node index.ts",
     "typecheck": "tsc --noEmit"

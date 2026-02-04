@@ -8,11 +8,6 @@ export function groupByCamera(fileMetadataList: Array<{ camera: string }>) {
       camera,
       count: (grouped[camera]?.count || 0) + 1,
     };
-
-    return {
-      totalImages: fileMetadataList.length,
-      camera,
-    };
   }
 
   return grouped;
