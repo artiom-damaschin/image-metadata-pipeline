@@ -1,20 +1,17 @@
 import { parentPort } from "node:worker_threads";
 
 import { extractMetadata } from "../lib/extract-metadata.ts";
-import type { Metadata } from "../lib/types.ts";
 
 parentPort?.on("message", async (filePaths: string[]) => {
-  const results: Metadata[] = [];
-
   try {
-    for (const filePath of filePaths) {
-      const metadata = await extractMetadata(filePath);
+    const results = await Promise.all(filePaths.map((f) => extractMetadata(f)));
 
-      results.push(metadata);
-    }
+    parentPort?.postMessage({ success: true, data: results });
   } catch (error) {
     console.error(error);
+    parentPort?.postMessage({
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
-
-  parentPort?.postMessage(results);
 });

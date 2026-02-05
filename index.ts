@@ -1,62 +1,51 @@
-import path from "node:path";
+import cluster from "node:cluster";
 import { availableParallelism } from "node:os";
-import { Worker } from "node:worker_threads";
+import path from "node:path";
+import process from "node:process";
 
 import { groupByCamera } from "./lib/group-by-camera.ts";
 import { scanDir } from "./lib/scan-dir.ts";
 import { chunk } from "#utils";
 
-const WORKER_PATH = new URL("./worker/metadata.worker.ts", import.meta.url);
-const THREADS = Math.max(1, availableParallelism() - 1);
-const BATCH_SIZE = 100;
+const NUM_CPUS = availableParallelism();
 
-async function main() {
+if (cluster.isPrimary) {
+  let completedWorkers = 0;
+  let results: any[] = [];
   const dir = process.argv[2];
+
   if (!dir) {
     console.error("Usage: node index.ts <image-dir>");
     process.exit(1);
   }
 
   const files = await scanDir(path.resolve(dir));
-  const jobs = chunk(files, BATCH_SIZE);
+  const actualWorkers = Math.min(NUM_CPUS, files.length);
+  const jobs = chunk(files, Math.ceil(files.length / actualWorkers));
 
-  let completedJobs = 0;
-  const results: any[] = [];
+  for (let i = 0; i < actualWorkers; i++) {
+    const worker = cluster.fork({ THREADS: 4 });
 
-  const workers = Array.from({ length: THREADS }, (_, i) => {
-    const worker = new Worker(WORKER_PATH, {
-      name: `meta-worker-${i}`,
+    worker.send({
+      type: "PROCESS_FILES",
+      payload: jobs[i] ?? [],
     });
 
-    worker.on("message", (batchResult) => {
-      results.push(...batchResult);
-      completedJobs++;
+    worker.on("message", ({ type, data }) => {
+      if (type === "done") {
+        results.push(...data);
+        completedWorkers++;
 
-      dispatch(worker);
-
-      if (completedJobs === jobs.length) {
-        const grouped = groupByCamera(results);
-
-        for (const worker of workers) {
-          worker.terminate();
+        if (completedWorkers === NUM_CPUS) {
+          const grouped = groupByCamera(results);
+          console.log(grouped);
+          process.exit(0);
         }
       }
     });
 
     worker.on("error", console.error);
-
-    return worker;
-  });
-
-  let jobIndex = 0;
-
-  function dispatch(worker: Worker) {
-    if (jobIndex < jobs.length) {
-      worker.postMessage(jobs[jobIndex++]);
-    }
   }
-
-  workers.forEach(dispatch);
+} else {
+  import("./worker/cluster.worker.ts");
 }
-
-main().catch(console.error);
